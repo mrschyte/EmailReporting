@@ -394,7 +394,8 @@ class ERP_mailbox_api
 									$t_foldername = $this->_mailbox[ 'imap_basefolder' ] . ( ( $this->_mailbox[ 'imap_createfolderstructure' ] ) ? $t_hierarchydelimiter . $t_project_name : NULL );
 
 									// We don't need to check twice whether the mailbox exist incase createfolderstructure is false
-									if ( !$this->_mailbox[ 'imap_createfolderstructure' ] || $this->_mailserver->mailboxExist( $t_foldername ) === TRUE )
+									if (($t_email[ 'Reporter_id' ] !== $this->_mail_reporter_id || $this->validate_email_address( $t_email[ 'From_parsed' ][ 'email' ] ))
+										&& $this->email_allowed_for_project($t_email['Reporter_id'], $this->_mailbox[ 'project_id' ]))
 									{
 										$this->_mailserver->selectMailbox( $t_foldername );
 
@@ -685,6 +686,15 @@ class ERP_mailbox_api
 		$this->custom_error( 'Could not get a valid reporter. Email will be ignored' );
 
 		return( FALSE );
+	}
+
+	/*
+	 * Check whether the specified reporter is added to the project.
+	 */
+	private function email_allowed_for_project($_reporter_id, $_project_id)
+	{
+		$projects = user_get_all_accessible_projects($_reporter_id);
+		return in_array($_project_id, $projects);
 	}
 
 	# --------------------

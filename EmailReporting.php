@@ -270,6 +270,7 @@ class EmailReportingPlugin extends MantisPlugin
 		$hooks = array(
 			'EVENT_MENU_MANAGE'	=> 'ERP_manage_emailreporting_menu',
 			'EVENT_CORE_READY'	=> 'ERP_core_ready',
+			'EVENT_EMAIL_SEND'  => 'ERP_set_email_sender',
 		);
 
 		return $hooks;
@@ -588,5 +589,36 @@ class EmailReportingPlugin extends MantisPlugin
 				plugin_config_set( 'mail_mantisbt_url_fix', $t_path );
 			}
 		}
+	}
+
+	/*
+	 * Returns the mailbox username for the specified project id.
+	 */
+	function ERP_get_mailbox_for_project($project_id)
+	{
+		$mailboxes = plugin_config_get( 'mailboxes', array() );
+
+		foreach ($mailboxes as $mbox) {
+			if ($mbox['project_id'] == $project_id) {
+				return $mbox['erp_username'];
+			}
+		}
+
+		return null;
+	}
+
+	/*
+	 * Set the email's sender based on the sender metadata field.
+	 */
+	function ERP_set_email_sender($event, $p_email_data)
+	{
+		if (isset($p_email_data->metadata['project_id'])) {
+			$sender = $this->ERP_get_mailbox_for_project($p_email_data->metadata['project_id']);
+
+			if ($sender != null) {
+				$p_email_data->metadata['sender'] = $sender;
+			}
+		}
+		return $p_email_data;
 	}
 }
