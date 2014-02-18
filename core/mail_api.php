@@ -394,8 +394,7 @@ class ERP_mailbox_api
 									$t_foldername = $this->_mailbox[ 'imap_basefolder' ] . ( ( $this->_mailbox[ 'imap_createfolderstructure' ] ) ? $t_hierarchydelimiter . $t_project_name : NULL );
 
 									// We don't need to check twice whether the mailbox exist incase createfolderstructure is false
-									if (($t_email[ 'Reporter_id' ] !== $this->_mail_reporter_id || $this->validate_email_address( $t_email[ 'From_parsed' ][ 'email' ] ))
-										&& $this->email_allowed_for_project($t_email['Reporter_id'], $this->_mailbox[ 'project_id' ]))
+									if ( !$this->_mailbox[ 'imap_createfolderstructure' ] || $this->_mailserver->mailboxExist( $t_foldername ) === TRUE )
 									{
 										$this->_mailserver->selectMailbox( $t_foldername );
 
@@ -509,7 +508,7 @@ class ERP_mailbox_api
 		if ( $t_email[ 'Reporter_id' ] !== FALSE )
 		{
 			// We don't need to validate the email address if it is an existing user (existing user also needs to be set as the reporter of the issue)
-			if ( $t_email[ 'Reporter_id' ] !== $this->_mail_reporter_id || $this->validate_email_address( $t_email[ 'From_parsed' ][ 'email' ] ) )
+			if ( ($t_email[ 'Reporter_id' ] !== $this->_mail_reporter_id || $this->validate_email_address( $t_email[ 'From_parsed' ][ 'email' ] )) && $this->email_allowed_for_project($t_email['Reporter_id'], $this->_mailbox['project_id']))
 			{
 				$this->add_bug( $t_email, $p_overwrite_project_id );
 			}
